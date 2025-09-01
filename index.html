@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FileGuardian — Vanilla</title>
+  <style>
+    /* =============================
+       HIGH-POLISH VANILLA UI THEME
+       ============================= */
+    :root {
+      --bg: #070a12;
+      --bg2: #0b1020;
+      --card: rgba(255,255,255,.04);
+      --card-strong: rgba(255,255,255,.08);
+      --line: rgba(255,255,255,.12);
+      --text: #eef4ff;
+      --muted: #9fb0c7;
+      --accent: #6aa6ff;
+      --accent2: #7df0d3;
+      --good: #2dd795;
+      --warn: #ffb547;
+      --bad:  #ff6b6b;
+      --radius-xl: 22px;
+      --radius-lg: 18px;
+      --radius: 14px;
+      --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+      --shadow-2: 0 30px 60px rgba(0,0,0,.45);
+      --blur: saturate(1.05) blur(10px);
+    }
+
+    [data-theme="light"] {
+      --bg: #f6f8ff;
+      --bg2: #ecf2ff;
+      --card: rgba(0,0,0,.04);
+      --card-strong: rgba(0,0,0,.06);
+      --line: rgba(0,0,0,.1);
+      --text: #0b1220;
+      --muted: #415167;
+      --accent: #2a6cf6;
+      --accent2: #1dcfb2;
+      --good: #15a176;
+      --warn: #bd7b19;
+      --bad:  #d84a4a;
+      --shadow-1: 0 8px 24px rgba(0,0,0,.08);
+      --shadow-2: 0 24px 48px rgba(0,0,0,.12);
+      --blur: saturate(1.05) blur(8px);
+    }
+
+    * { box-sizing: border-box }
+    html, body { height: 100% }
+    body {
+      margin: 0;
+      color: var(--text);
+      font: 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background:
+        radial-gradient(1000px 600px at 10% -10%, rgba(106,166,255,.18), transparent),
+        radial-gradient(1200px 700px at 120% -30%, rgba(125,240,211,.12), transparent),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      overflow-y: overlay;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 28px 18px 90px }
+
+    /* Header */
+    .nav {
+      display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 16px; margin-bottom: 18px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px }
+    .logo {
+      width: 40px; height: 40px; border-radius: 14px;
+      background: conic-gradient(from 210deg, var(--accent), var(--accent2));
+      display: grid; place-items: center; font-weight: 900; color: white; letter-spacing: .5px; box-shadow: var(--shadow-1);
+    }
+    .title { font-size: 28px; font-weight: 900; letter-spacing: .3px }
+
+    .nav-actions { display: flex; align-items: center; gap: 10px }
+    .btn {
+      border: 0; cursor: pointer; font-weight: 700; color: var(--text);
+      padding: 10px 14px; border-radius: 12px; background: var(--card); backdrop-filter: var(--blur);
+      box-shadow: var(--shadow-1); transition: transform .08s ease, background .2s ease;
+    }
+    .btn:hover { transform: translateY(-1px) }
+    .btn:active { transform: translateY(0) scale(.98) }
+    .btn.primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #001122;
+    }
+
+    /* Hero */
+    .hero { position: relative; overflow: hidden; border-radius: var(--radius-xl); padding: 24px; margin-bottom: 18px;
+            background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+            border: 1px solid var(--line); box-shadow: var(--shadow-2); backdrop-filter: var(--blur); }
+    .hero h1 { margin: 0; font-size: 32px; letter-spacing: .2px }
+    .hero p { margin: 6px 0 0; color: var(--muted) }
+    .hero-badges { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap }
+    .chip { padding: 6px 10px; font-size: 12px; border-radius: 999px; background: var(--card-strong); border: 1px solid var(--line) }
+
+    /* Layout */
+    .grid { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px }
+    @media (max-width: 1100px) { .grid { grid-template-columns: 1fr } }
+
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-xl); padding: 18px; box-shadow: var(--shadow-1); backdrop-filter: var(--blur); }
+    .card h3 { margin: 0 0 12px; font-size: 18px; letter-spacing: .2px }
+
+    /* Scanner */
+    .dropzone { border: 2px dashed rgba(255,255,255,.18); border-radius: var(--radius-lg); padding: 32px; text-align: center; transition: .2s }
+    .dropzone.dragover { background: rgba(106,166,255,.08); border-color: var(--accent) }
+    .dz-title { font-size: 18px; font-weight: 900 }
+    .dz-hint { color: var(--muted); font-size: 13px; margin-top: 6px }
+
+    .file-row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 12px; border-radius: var(--radius); background: var(--card-strong); border: 1px solid var(--line); margin-top: 14px }
+    .file-icon { width: 42px; height: 48px; border-radius: 10px; background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02)); display: grid; place-items: center; border: 1px solid var(--line) }
+    .file-name { font-weight: 800 }
+    .file-meta { color: var(--muted); font-size: 13px; margin-top: 2px }
+
+    /* Results */
+    .results { display: grid; gap: 14px; margin-top: 14px }
+    .score-box { display: grid; grid-template-columns: 140px 1fr; gap: 18px; align-items: center }
+
+    /* Circular score using SVG for smoothness */
+    .ring { width: 140px; height: 140px; position: relative }
+    .ring svg { transform: rotate(-90deg) }
+    .ring .num { position: absolute; inset: 0; display: grid; place-items: center; font-weight: 900; font-size: 26px }
+    .badge { display: inline-block; font-size: 12px; padding: 6px 10px; border-radius: 999px; font-weight: 800; border: 1px solid var(--line) }
+    .low  { background: rgba(45,215,149,.18); color: var(--good) }
+    .med  { background: rgba(255,181,71,.20); color: var(--warn) }
+    .high { background: rgba(255,107,107,.22); color: var(--bad) }
+
+    .kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px }
+    .kv .cell { background: var(--card-strong); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px }
+    .kv .k { font-size: 12px; color: var(--muted) }
+    .kv .v { font-size: 14px; font-weight: 800 }
+    @media (max-width: 520px){ .kv { grid-template-columns: 1fr 1fr } }
+
+    .flags { display: grid; gap: 10px }
+    .flag { display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; align-items: start; padding: 12px; border-radius: var(--radius); background: var(--card-strong); border: 1px solid var(--line) }
+    .flag .bar { width: 10px; border-radius: 6px; height: 100% }
+    .flag h4 { margin: 0 0 6px; font-size: 14px }
+    .flag p { margin: 0; font-size: 13px; color: var(--muted) }
+    .tag { font-size: 11px; padding: 4px 8px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.06) }
+
+    /* Right column */
+    .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px }
+    .tab { text-align: center; padding: 10px; border-radius: 12px; background: var(--card-strong); border: 1px solid var(--line); cursor: pointer; font-weight: 800; transition: .15s }
+    .tab.active { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #001225 }
+
+    .panel { display: none }
+    .panel.show { display: block }
+
+    details { background: var(--card-strong); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px }
+    summary { cursor: pointer; font-weight: 800 }
+    details p { margin: 8px 0 0; color: var(--muted) }
+
+    .history li { list-style: none; padding: 10px 6px; border-bottom: 1px dashed var(--line) }
+
+    .footer { margin-top: 12px; font-size: 12px; color: var(--muted) }
+
+    .hidden { display: none }
+
+    /* Subtle animated gradient orb */
+    .orb { position: absolute; width: 480px; height: 480px; right: -120px; top: -160px; border-radius: 50%; filter: blur(60px) saturate(1.2);
+            background: radial-gradient(circle at 30% 30%, rgba(106,166,255,.65), transparent 55%),
+                        radial-gradient(circle at 70% 60%, rgba(125,240,211,.55), transparent 60%);
+            opacity: .35; animation: float 12s ease-in-out infinite alternate; pointer-events: none }
+    @keyframes float { from { transform: translateY(-10px) } to { transform: translateY(14px) } }
+  </style>
+</head>
+<body>
+  <div class="container" id="app">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo">FG</div>
+        <div class="title">FileGuardian</div>
+      </div>
+      <div></div>
+      <div class="nav-actions">
+        <button id="themeToggle" class="btn" aria-label="Toggle theme">🌗 Theme</button>
+        <button id="demoBtn" class="btn primary">▶ Demo</button>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="orb"></div>
+      <h1>Pro‑grade file safety, built with pure JavaScript.</h1>
+      <p>Drag a file, get an instant risk profile with smart heuristics and local SHA‑256 — nothing leaves your browser.</p>
+      <div class="hero-badges">
+        <span class="chip">Local‑only</span>
+        <span class="chip">SHA‑256</span>
+        <span class="chip">Type Mismatch Detection</span>
+        <span class="chip">Heuristic Flags</span>
+        <span class="chip">Dark/Light</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: Scanner + Results -->
+      <div class="card">
+        <h3>Scan</h3>
+        <div class="dropzone" id="dropzone">
+          <div class="dz-title">Drop a file here or click to browse</div>
+          <div class="dz-hint">We check extension risks, double extensions, hidden characters, size anomalies, and MIME mismatches.</div>
+          <input type="file" id="fileInput" class="hidden" />
+        </div>
+
+        <div id="fileRow" class="file-row hidden">
+          <div class="file-icon" id="fileIcon" aria-hidden="true"></div>
+          <div>
+            <div class="file-name" id="fileName">—</div>
+            <div class="file-meta" id="fileMeta">—</div>
+          </div>
+          <button class="btn" id="rescanBtn">Change File</button>
+        </div>
+
+        <div class="results hidden" id="results">
+          <div class="score-box">
+            <div class="ring">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="58" stroke="rgba(255,255,255,.08)" stroke-width="16" fill="none"/>
+                <circle id="ringMeter" cx="70" cy="70" r="58" stroke="var(--bad)" stroke-width="16" fill="none" stroke-linecap="round" stroke-dasharray="364" stroke-dashoffset="364"/>
+              </svg>
+              <div class="num" id="score">0</div>
+            </div>
+            <div>
+              <div id="riskBadge" class="badge low">Low Risk</div>
+              <div class="kv">
+                <div class="cell"><div class="k">SHA‑256</div><div class="v" id="kvHash">—</div></div>
+                <div class="cell"><div class="k">Type</div><div class="v" id="kvType">—</div></div>
+                <div class="cell"><div class="k">Size</div><div class="v" id="kvSize">—</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flags" id="flags"></div>
+          <div class="footer">Nothing is uploaded. All analysis is performed in‑browser.</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Tabs (Explain • Learn • History) -->
+      <div class="card">
+        <div class="tabs">
+          <div class="tab active" data-tab="explain">Explain</div>
+          <div class="tab" data-tab="learn">Learn</div>
+          <div class="tab" data-tab="history">History</div>
+        </div>
+
+        <div class="panel show" id="tab-explain">
+          <details open>
+            <summary>How the score works</summary>
+            <p>The score aggregates heuristic signals: suspicious extensions, double extensions, hidden characters, MIME/extension mismatches, and unusual size. It is a guide — always verify source and hashes for critical downloads.</p>
+          </details>
+          <div style="height:8px"></div>
+          <details>
+            <summary>What to do on High Risk</summary>
+            <p>Do not open. Verify with the sender, re‑download from the official source, or scan with another tool. For archives, inspect contents before extracting.</p>
+          </details>
+        </div>
+
+        <div class="panel" id="tab-learn">
+          <details>
+            <summary>Suspicious Extensions</summary>
+            <p>Executable types like <code>.exe, .bat, .cmd, .ps1, .jar</code> can run code. Treat them carefully, especially from email or chat.</p>
+          </details>
+          <div style="height:8px"></div>
+          <details>
+            <summary>Double Extensions</summary>
+            <p>Names like <em>invoice.pdf.exe</em> hide the true type. Enable file‑extension visibility in your OS to spot these.</p>
+          </details>
+          <div style="height:8px"></div>
+          <details>
+            <summary>SHA‑256</summary>
+            <p>A cryptographic fingerprint. Some vendors list the expected hash — match it before installing software.</p>
+          </details>
+        </div>
+
+        <div class="panel" id="tab-history">
+          <ul id="history" class="history"></ul>
+          <div style="text-align:right; margin-top:8px">
+            <button class="btn" id="clearHistory">Clear History</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ====== UTILITIES ======
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const fmtBytes = b => { const u=['B','KB','MB','GB']; let i=0,n=b; while(n>=1024&&i<u.length-1){n/=1024;i++} return `${n.toFixed(n<10?(i?1:0):0)} ${u[i]}` };
+    const extOf = name => name.includes('.') ? name.toLowerCase().split('.').pop() : '';
+    const hasDoubleExt = name => /\.[^\.]+\.[^\.]+$/.test(name.toLowerCase());
+    const hasHiddenChars = name => /[​-‍﻿]/.test(name);
+
+    const SUSPICIOUS_EXTS = new Set(['exe','msi','bat','cmd','com','scr','ps1','vbs','jar','dll','iso','img','lnk','reg','hta','js','jse','wsf','apk','pkg','dmg','docm','xlsm','pptm','chm','zip','rar','7z']);
+    const DOC_EXTS = new Set(['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','rtf','csv']);
+    const IMAGE_EXTS = new Set(['png','jpg','jpeg','gif','webp','bmp','svg']);
+
+    const EXT_TO_FAMILY = ext => DOC_EXTS.has(ext)?'document': IMAGE_EXTS.has(ext)?'image': SUSPICIOUS_EXTS.has(ext)?'executable':'other';
+    const MIME_FAM = mime => { if(!mime) return 'unknown'; if(mime.startsWith('image/')) return 'image'; if(mime==='application/pdf'||mime.includes('officedocument')||mime.startsWith('text/')) return 'document'; if(mime.includes('x-msdownload')||mime.includes('octet-stream')) return 'executable'; return 'other'; };
+
+    async function sha256(file){ const buf=await file.arrayBuffer(); const hash=await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,'0')).join(''); }
+
+    function badge(score){ return score<30?['Low Risk','low']: score<70?['Medium Risk','med']: ['High Risk','high']; }
+
+    function setRing(score){
+      const circ = 2*Math.PI*58; // r=58, matches SVG
+      const off = Math.max(0, circ - (score/100)*circ);
+      const ring = $('#ringMeter');
+      ring.setAttribute('stroke-dasharray', String(circ.toFixed(0)));
+      ring.setAttribute('stroke-dashoffset', String(off.toFixed(0)));
+    }
+
+    function iconFor(ext){
+      const color = SUSPICIOUS_EXTS.has(ext)?'var(--bad)': IMAGE_EXTS.has(ext)?'var(--accent2)': DOC_EXTS.has(ext)?'var(--accent)': 'rgba(255,255,255,.5)';
+      return `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+    }
+
+    // ====== CORE SCAN ======
+    async function scan(file){
+      const name=file.name, ext=extOf(name), size=file.size, type=file.type||'unknown';
+      const hash=await sha256(file);
+      const flags=[]; let score=0;
+
+      if(SUSPICIOUS_EXTS.has(ext)){ flags.push({lvl:'high', title:`Suspicious extension .${ext}`, tip:'Avoid running executables from email/unknown sources.'}); score+=55; }
+      if(hasDoubleExt(name)){ flags.push({lvl:'high', title:'Double extension', tip:'E.g., report.pdf.exe hides true type.'}); score+=35; }
+      if(hasHiddenChars(name)){ flags.push({lvl:'med', title:'Hidden characters in name', tip:'Zero-width chars can disguise filenames.'}); score+=20; }
+
+      const famExt = EXT_TO_FAMILY(ext); const famMime = MIME_FAM(type);
+      if(famExt!=='other' && famMime!=='unknown' && famExt!==famMime){ flags.push({lvl:'med', title:'Type mismatch', tip:`Extension suggests ${famExt}, MIME says ${famMime}.`}); score+=25; }
+      if(size>50*1024*1024){ flags.push({lvl:'med', title:'Unusually large file', tip:'Oversized files can hide payloads. Verify source.'}); score+=15; }
+
+      if(flags.length===0){ flags.push({lvl:'low', title:'No obvious red flags', tip:'Still verify sender and hash if available.'}); score+=5; }
+
+      score=Math.min(100, score);
+      return { name, ext, size, type, hash, flags, score };
+    }
+
+    // ====== UI ======
+    const dropzone=$('#dropzone'), fileInput=$('#fileInput');
+    const fileRow=$('#fileRow'), fileNameEl=$('#fileName'), fileMetaEl=$('#fileMeta'), fileIconEl=$('#fileIcon');
+    const results=$('#results'), scoreEl=$('#score'), riskBadgeEl=$('#riskBadge');
+    const kvHash=$('#kvHash'), kvType=$('#kvType'), kvSize=$('#kvSize');
+    const flagsEl=$('#flags');
+
+    function showFile(file){
+      fileIconEl.innerHTML = iconFor(extOf(file.name));
+      fileNameEl.textContent=file.name;
+      fileMetaEl.textContent=`${fmtBytes(file.size)} • ${file.type||'unknown'} • .${extOf(file.name)||'none'}`;
+      fileRow.classList.remove('hidden');
+    }
+
+    function renderFlags(flags){
+      flagsEl.innerHTML='';
+      flags.forEach(f=>{
+        const div=document.createElement('div'); div.className='flag';
+        const bar=document.createElement('div'); bar.className='bar'; bar.style.background = f.lvl==='high'? 'var(--bad)': f.lvl==='med'? 'var(--warn)': 'var(--good)';
+        const body=document.createElement('div');
+        const h=document.createElement('h4'); h.textContent=f.title;
+        const p=document.createElement('p'); p.textContent=f.tip;
+        const tag=document.createElement('div'); tag.className='tag'; tag.textContent = f.lvl==='high'?'High':'Medium' && f.lvl==='med'?'Medium':'Low';
+        body.appendChild(h); body.appendChild(p);
+        div.appendChild(bar); div.appendChild(body); div.appendChild(tag);
+        flagsEl.appendChild(div);
+      })
+    }
+
+    function updateHistory(entry){ const list=JSON.parse(localStorage.getItem('fg_history')||'[]'); list.unshift(entry); localStorage.setItem('fg_history', JSON.stringify(list.slice(0,10))); paintHistory(); }
+    function paintHistory(){ const ul=$('#history'); if(!ul) return; const list=JSON.parse(localStorage.getItem('fg_history')||'[]'); ul.innerHTML=list.map(x=>`<li><strong>${x.name}</strong> — <span style="color:var(--muted)">${x.ext?'.'+x.ext:''} • ${fmtBytes(x.size)} • ${x.badge}</span></li>`).join(''); }
+
+    async function handle(files){ const f=files[0]; if(!f) return; showFile(f); results.classList.remove('hidden'); scoreEl.textContent='…'; setRing(0); flagsEl.innerHTML=''; kvHash.textContent='computing…'; kvType.textContent=f.type||'unknown'; kvSize.textContent=fmtBytes(f.size);
+      const out=await scan(f); const [txt, cls]=badge(out.score); riskBadgeEl.className = `badge ${cls}`; riskBadgeEl.textContent = txt; scoreEl.textContent = out.score; setRing(out.score); kvHash.textContent = out.hash.slice(0,16)+'…'; renderFlags(out.flags); updateHistory({name: out.name, ext: out.ext, size: out.size, badge: txt}); }
+
+    // Drag & Drop
+    ;['dragenter','dragover'].forEach(e=>dropzone.addEventListener(e, ev=>{ev.preventDefault(); dropzone.classList.add('dragover')}));
+    ;['dragleave','drop'].forEach(e=>dropzone.addEventListener(e, ev=>{ev.preventDefault(); dropzone.classList.remove('dragover')}));
+    dropzone.addEventListener('drop', e=> handle(e.dataTransfer.files));
+    dropzone.addEventListener('click', ()=> fileInput.click());
+    fileInput.addEventListener('change', e=> handle(e.target.files));
+
+    $('#rescanBtn').addEventListener('click', ()=> fileInput.click());
+
+    // Demo
+    $('#demoBtn').addEventListener('click', async ()=>{ const blob=new Blob(["Demo content: quarterly report."], {type:'application/pdf'}); const demo=new File([blob], 'Quarterly_Report.pdf.exe', {type:'application/pdf'}); await handle([demo]); });
+
+    // Theme
+    function setTheme(mode){ document.documentElement.setAttribute('data-theme', mode); localStorage.setItem('fg_theme', mode); }
+    setTheme(localStorage.getItem('fg_theme')||'dark');
+    $('#themeToggle').addEventListener('click', ()=>{ const cur=document.documentElement.getAttribute('data-theme')||'dark'; setTheme(cur==='dark'?'light':'dark'); });
+
+    // Tabs
+    $$('.tab').forEach(t=> t.addEventListener('click', ()=>{ $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active'); const id='tab-'+t.dataset.tab; $$('.panel').forEach(p=>p.classList.remove('show')); $('#'+id).classList.add('show'); }));
+
+    // History
+    $('#clearHistory').addEventListener('click', ()=>{ localStorage.removeItem('fg_history'); paintHistory(); });
+    paintHistory();
+  </script>
+</body>
+</html>
